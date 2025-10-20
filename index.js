@@ -8,7 +8,7 @@ const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
 
 // Conecxão ao Brocker MQTT público HiveMQ
 const client = mqtt.connect("mqtt://broker.hivemq.com:1883");
-const topic = "seani/wellin";
+const topic = "senai/Wellin";
 
 client.on("connect", () => {
   console.log("Conectado ao broker MQTT!");
