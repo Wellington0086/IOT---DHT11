@@ -30,7 +30,7 @@
 
         client.on("connect", () => {
             console.log("Conectado ao MQTT");
-            client.subscribe("seani/Wellin");
+            client.subscribe("senai/Wellin");
         });
 
         client.on("message", (topic, message) => {

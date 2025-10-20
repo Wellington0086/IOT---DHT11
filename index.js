@@ -3,12 +3,12 @@ const { ReadlineParser } = require("@serialport/parser-readline");
 const mqtt = require("mqtt");
 
 // Porta do Arquivo (ajuste "COM3" no Windows ou "/dev/ttyUSB0" no Linux)
-const port = new SerialPort({ path: "COM3", baudRate: 9600 });
+const port = new SerialPort({ path: "COM4", baudRate: 9600 });
 const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
 
 // Conecxão ao Brocker MQTT público HiveMQ
 const client = mqtt.connect("mqtt://broker.hivemq.com:1883");
-const topic = "seani/Wellin";
+const topic = "seani/wellin";
 
 client.on("connect", () => {
   console.log("Conectado ao broker MQTT!");
