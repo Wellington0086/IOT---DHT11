@@ -7,8 +7,8 @@ const port = new SerialPort({ path: "COM3", baudRate: 9600 });
 const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
 
 // Conecxão ao Brocker MQTT público HiveMQ
-const client = mqtt.connect("mqtt://broker.hivemq.com:1883");
-const topic = "seani/iot/dht11";
+const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+const topic = "seani/Wellin";
 
 client.on("connect", () => {
   console.log("Conectado ao broker MQTT!");
