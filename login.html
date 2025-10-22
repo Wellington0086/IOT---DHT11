@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login | IoT Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: linear-gradient(135deg, #0a0a0a, #2a5298);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    .login-container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    .login-container img {
+      width: 60px;
+      margin-bottom: 15px;
+    }
+
+    .login-container h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .login-container label {
+      display: block;
+      text-align: left;
+      margin: 10px 0 5px;
+      font-weight: 500;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      transition: border 0.3s;
+    }
+
+    .login-container input:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    .login-container button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .login-container button:hover {
+      background: linear-gradient(135deg, #0072ff, #0053c0);
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+
+    /* opcional: animação leve (ex: partícula/onda) */
+    .sensor-icon {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <img src="https://cdn-icons-png.flaticon.com/512/728/728093.png" alt="Umidade" class="sensor-icon">    <h2>Login</h2>
+    <form id="loginForm">
+      <label for="username">Usuário:</label>
+      <input type="text" id="username" required>
+
+      <label for="password">Senha:</label>
+      <input type="password" id="password" required>
+
+      <button type="submit">Entrar</button>
+      <p class="error" id="errorMsg" style="display: none;">Usuário ou senha inválidos</p>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (user === 'admin' && pass === 'admin') {
+        localStorage.setItem('logado', 'sim');
+        window.location.href = 'index.html';
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
