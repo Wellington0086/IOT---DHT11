@@ -1,52 +1,298 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>Dashboard IoT</title>
-    <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard IoT</title>
+  <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', Arial, sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    :root {
+      --bg-color: #f4f6f9;
+      --text-color: #222;
+      --card-bg: #fff;
+      --header-bg: linear-gradient(135deg, #0072ff, #00c6ff);
+      --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1e1e1e;
+      --header-bg: linear-gradient(135deg, #222, #444);
+      --shadow-color: rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--header-bg);
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 4px 10px var(--shadow-color);
+    }
+
+    header h1 {
+      font-size: clamp(1.1rem, 2vw, 1.6rem);
+      margin: 0;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .logout-btn,
+    .darkmode-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    .logout-btn:hover { background-color: #c82333; }
+
+    .darkmode-btn {
+      background-color: #f1f1f1;
+      color: #333;
+    }
+    body.dark .darkmode-btn {
+      background-color: #333;
+      color: #eee;
+    }
+
+    .status {
+      text-align: center;
+      margin: 15px auto;
+      font-weight: 500;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    .cards-wrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px var(--shadow-color);
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card h4 {
+      margin-bottom: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .card p {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .charts-wrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      padding: 20px;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 50px;
+    }
+
+    .chart-box {
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      width: 100%;
+    }
+
+    h3 {
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 300px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      font-size: 14px;
+      box-shadow: 0 -2px 10px var(--shadow-color);
+      margin-top: auto;
+    }
+
+    @media (max-width: 500px) {
+      header { flex-direction: column; text-align: center; }
+      .darkmode-btn, .logout-btn { width: 100%; }
+    }
+  </style>
 </head>
+
 <body>
-    <h2>Monitoramento DHT11</h2>
-    <canvas id="grafico" width="400" height="200"></canvas>
+  <header>
+    <h1>Dashboard IoT - Monitoramento DHT11</h1>
+    <div class="btn-group">
+      <button class="darkmode-btn" onclick="toggleDarkMode()">🌙 Modo Escuro</button>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+  </header>
 
-    <script>
-        const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+  <div id="status" class="status">🔄 Conectando...</div>
 
-        const labels = [];
-        const tempData = [];
-        const humData = [];
+  <div class="cards-wrapper">
+    <div class="card">
+      <h4>Temperatura Atual</h4>
+      <p id="tempAtual">-- °C</p>
+    </div>
+    <div class="card">
+      <h4>Umidade Atual</h4>
+      <p id="umidAtual">-- %</p>
+    </div>
+  </div>
 
-        const ctx = document.getElementById("grafico").getContext("2d");
-        const chart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [
-                { label: "Temperatura (°C)",data: tempData, borderColor: "red", fill: false },
-                { label: "Umidade (%)",data: humData, borderColor: "blue", fill: false }
-            ]
-        }
-        });
+  <div class="charts-wrapper">
+    <div class="chart-box">
+      <h3>Temperatura (°C)</h3>
+      <canvas id="graficoTemperatura"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>Umidade (%)</h3>
+      <canvas id="graficoUmidade"></canvas>
+    </div>
+  </div>
 
-        client.on("connect", () => {
-            console.log("Conectado ao MQTT");
-            client.subscribe("senai/Wellin");
-        });
+  <footer>
+    © 2025 Dashboard IoT | Desenvolvido por Gean & Wellington
+  </footer>
 
-        client.on("message", (topic, message) => {
-            const data = JSON.parse(message.toString());
-            const time = new Date().toLocaleTimeString();
+  <script>
+    // --- LOGIN CHECK ---
+    if (localStorage.getItem('logado') !== 'sim') {
+      window.location.href = 'login.html';
+    }
 
-            labels.push(time);
-            tempData.push(data.temperatura);
-            humData.push(data.umidade);
+    function logout() {
+      localStorage.removeItem('logado');
+      window.location.href = 'login.html';
+    }
 
-            if (labels.length > 20) {
-                labels.shift();tempData.shift();humData.shift();
-            }
+    // --- DARK MODE ---
+    function toggleDarkMode() {
+      const body = document.body;
+      const isDark = body.classList.toggle('dark');
+      localStorage.setItem('darkMode', isDark ? 'on' : 'off');
+      document.querySelector('.darkmode-btn').textContent = isDark ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+    }
 
-            chart.update();
-        });
-    </script>
+    function applyDarkModePreference() {
+      const stored = localStorage.getItem('darkMode');
+      const hour = new Date().getHours();
+      const autoDark = hour >= 18 || hour < 6;
+      if (stored === 'on' || (!stored && autoDark)) {
+        document.body.classList.add('dark');
+        document.querySelector('.darkmode-btn').textContent = '☀️ Modo Claro';
+      }
+    }
+
+    applyDarkModePreference();
+
+    // --- MQTT + GRÁFICOS ---
+    const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+    const labels = [], tempData = [], humData = [];
+    const MAX_POINTS = 30;
+
+    const ctxTemp = document.getElementById("graficoTemperatura").getContext("2d");
+    const chartTemp = new Chart(ctxTemp, {
+      type: "line",
+      data: { labels, datasets: [{ label: "Temperatura (°C)", data: tempData, borderColor: "red", backgroundColor: "rgba(255,0,0,0.1)", fill: true, tension: 0.3 }] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    const ctxHum = document.getElementById("graficoUmidade").getContext("2d");
+    const chartHum = new Chart(ctxHum, {
+      type: "line",
+      data: { labels, datasets: [{ label: "Umidade (%)", data: humData, borderColor: "blue", backgroundColor: "rgba(0,0,255,0.1)", fill: true, tension: 0.3 }] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    client.on("connect", () => {
+      document.getElementById("status").textContent = "🟢 Conectado";
+      client.subscribe("senai/iot/dht11");
+    });
+
+    client.on("close", () => {
+      document.getElementById("status").textContent = "🔴 Desconectado";
+    });
+
+    client.on("message", (topic, message) => {
+      const data = JSON.parse(message.toString());
+      const time = new Date().toLocaleTimeString();
+
+      document.getElementById("tempAtual").textContent = data.temperatura + " °C";
+      document.getElementById("umidAtual").textContent = data.umidade + " %";
+
+      labels.push(time);
+      tempData.push(data.temperatura);
+      humData.push(data.umidade);
+
+      if (labels.length > MAX_POINTS) {
+        labels.shift();
+        tempData.shift();
+        humData.shift();
+      }
+
+      chartTemp.update();
+      chartHum.update();
+    });
+  </script>
 </body>
 </html>
